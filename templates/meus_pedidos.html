@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Meus pedidos</h2>
+
+<table>
+    <thead>
+        <tr>
+            <th>Pelada</th>
+            <th>Quando</th>
+            <th>Status</th>
+            <th>Ações</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for p in pedidos %}
+        <tr data-cy="pedido">
+            <td>{{ p['local_nome'] }}</td>
+            <td>{{ p['data_hora'] }}</td>
+            <td data-cy="pedido-status">{{ p['status'] }}</td>
+            <td>
+                {% if p['status'] == 'Pendente' %}
+                    <form method="POST" action="{{ url_for('cancelar_solicitacao', id_solicitacao=p['id_solicitacao']) }}" style="display:inline;">
+                        <button type="submit" class="secondary" data-cy="cancelar-solicitacao">Cancelar solicitação</button>
+                    </form>
+                {% elif p['status'] == 'Aceita' %}
+                    <a href="https://wa.me/{{ p['organizador_whatsapp'] }}" target="_blank" role="button" data-cy="abrir-whatsapp">Abrir WhatsApp do organizador</a>
+                    <a href="{{ url_for('avaliar_participante', id_pelada=p['id_pelada']) }}" role="button" class="secondary" data-cy="avaliar">Avaliar participantes</a>
+                {% else %}
+                    —
+                {% endif %}
+            </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="4">Você ainda não solicitou vaga em nenhuma pelada.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

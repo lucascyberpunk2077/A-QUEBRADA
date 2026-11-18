@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="card">
+  <img src="https://images.unsplash.com/photo-1529900748604-07564a03e7a6?auto=format&fit=crop&w=1100&q=80" alt="Arena" style="width: 100%; height: 240px; object-fit: cover;">
+  <div class="card-body" style="padding: 28px;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; margin-bottom: 16px;">
+      <div>
+        <span class="tag tag-green" style="margin-bottom: 8px;">{{ pelada['nivel'] }} &bull; {{ pelada['tipo'] }}</span>
+        <h1 style="font-size: 1.7rem;">{{ pelada['local_nome'] }}</h1>
+        <p style="color: #64748b;">📍 {{ pelada['endereco'] }} — {{ pelada['bairro'] }}, {{ pelada['cidade'] }}</p>
+      </div>
+      <div style="text-align: right;">
+        <span class="price" style="font-size: 1.6rem;">R$ {{ "%.2f"|format(pelada['valor_por_pessoa']) }}</span>
+        <p style="color: #64748b; font-size: 0.85rem;">por jogador</p>
+      </div>
+    </div>
+
+    {% if pelada['descricao'] %}
+      <p style="margin-bottom: 18px; color: #334155;">{{ pelada['descricao'] }}</p>
+    {% endif %}
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; background: #f8fafc; padding: 16px; border-radius: 10px; margin-bottom: 20px;">
+      <div><strong>📅 Data e Hora:</strong><br>{{ pelada['data_hora'] }}</div>
+      <div><strong>👥 Vagas Livres:</strong><br>{{ pelada['vagas_livres'] }} de {{ pelada['vagas_totais'] }}</div>
+      <div><strong>🏆 Organizador:</strong><br>{{ pelada['organizador_nome'] }}</div>
+      <div><strong>📌 Status:</strong><br>{{ pelada['status'] }}</div>
+    </div>
+
+    {% if pelada['id_organizador'] != session.get('user_id') %}
+      {% if not solicitacao %}
+        <form method="POST" action="/pelada/{{ pelada['id_pelada'] }}/solicitar">
+          <div class="form-group">
+            <label>Mensagem para o organizador (opcional)</label>
+            <input type="text" name="mensagem" placeholder="Ex: Jogo no meio ou ataque, chego 10 min antes!">
+          </div>
+          <button type="submit" data-cy="solicitar-vaga" class="btn btn-accent">⚽ Solicitar Vaga na Pelada</button>
+        </form>
+      {% else %}
+        <div class="alert alert-success">Status da sua solicitação: <strong>{{ solicitacao['status'] }}</strong></div>
+        {% if solicitacao['status'] == 'Aceita' and pelada['organizador_whatsapp'] %}
+          <a href="https://wa.me/{{ pelada['organizador_whatsapp'] }}" target="_blank" data-cy="abrir-whatsapp" class="btn btn-whatsapp">💬 Chamar Organizador no WhatsApp</a>
+        {% endif %}
+      {% endif %}
+    {% else %}
+      <a href="/pelada/{{ pelada['id_pelada'] }}/editar" class="btn btn-outline">✏️ Gerenciar / Editar Minha Pelada</a>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

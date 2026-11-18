@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block content %}
+<div style="max-width: 860px; margin: 20px auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.08); border: 1px solid #e2e8f0;">
+  <div style="background: linear-gradient(rgba(15,23,42,0.65), rgba(20,83,45,0.85)), url('https://images.unsplash.com/photo-1518605368461-1ee7e53f6664?auto=format&fit=crop&w=800&q=80') center/cover; color: #fff; padding: 36px; display: flex; flex-direction: column; justify-content: space-between;">
+    <div>
+      <span class="tag tag-orange" style="margin-bottom: 12px;">FUTEBOL AMADOR</span>
+      <h1 style="font-size: 2rem; line-height: 1.2; margin-bottom: 12px;">Bem-vindo à A QUEBRADA</h1>
+      <p style="color: #e2e8f0;">Encontre peladas perto de você, garanta sua vaga na resenha ou organize seu próprio racha sem dor de cabeça.</p>
+    </div>
+    <p style="font-size: 0.85rem; color: #cbd5e1; margin-top: 24px;">⚽ Society &bull; Futsal &bull; Campo</p>
+  </div>
+  <div style="padding: 36px;">
+    <h2 style="margin-bottom: 6px;">Entrar na conta</h2>
+    <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 20px;">Use seu e-mail e senha para entrar em campo.</p>
+    {% if erro %}
+      <div class="alert alert-error" data-cy="login-erro">{{ erro }}</div>
+    {% endif %}
+    <form method="POST">
+      <div class="form-group">
+        <label>E-mail</label>
+        <input type="email" name="email" data-cy="login-email" placeholder="seu@email.com">
+      </div>
+      <div class="form-group">
+        <label>Senha</label>
+        <input type="password" name="senha" data-cy="login-senha" placeholder="••••••">
+      </div>
+      <button type="submit" data-cy="login-enviar" class="btn btn-primary" style="width: 100%; margin-top: 6px;">Entrar em Campo</button>
+    </form>
+    <p style="margin-top: 18px; text-align: center; font-size: 0.92rem;">
+      Ainda não joga com a gente? <a href="/cadastro" data-cy="criar-conta" style="color: #15803d; font-weight: 700;">Criar conta</a>
+    </p>
+  </div>
+</div>
+{% endblock %}

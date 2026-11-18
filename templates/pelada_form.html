@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block content %}
+<article>
+    <h2>{% if pelada %}Editar pelada{% else %}Publicar pelada{% endif %}</h2>
+
+    {% if erro %}
+        <div class="erro-box" data-cy="pelada-erro">{{ erro }}</div>
+    {% endif %}
+
+    {% set data_val = pelada['data_hora'].split(' ')[0] if pelada else '' %}
+    {% set hora_val = pelada['data_hora'].split(' ')[1] if pelada else '' %}
+
+    <form method="POST">
+        <label>Local
+            <select name="id_local" data-cy="pelada-local">
+                {% for l in locais %}
+                    <option value="{{ l['id_local'] }}" {% if pelada and pelada['id_local'] == l['id_local'] %}selected{% endif %}>
+                        {{ l['nome'] }} ({{ l['bairro'] }})
+                    </option>
+                {% endfor %}
+            </select>
+        </label>
+
+        <div class="grid">
+            <label>Data
+                <input type="date" name="data" value="{{ data_val }}" data-cy="pelada-data">
+            </label>
+            <label>Horário
+                <input type="time" name="hora" value="{{ hora_val }}" data-cy="pelada-hora">
+            </label>
+        </div>
+
+        <div class="grid">
+            <label>Vagas totais
+                <input type="number" name="vagas_totais" value="{{ pelada['vagas_totais'] if pelada else '' }}" data-cy="pelada-vagas">
+            </label>
+            <label>Valor por pessoa (R$)
+                <input type="number" step="0.01" name="valor_por_pessoa" value="{{ pelada['valor_por_pessoa'] if pelada else '' }}" data-cy="pelada-valor">
+            </label>
+        </div>
+
+        <label>Nível
+            <select name="nivel" data-cy="pelada-nivel">
+                <option value="Casual" {% if pelada and pelada['nivel'] == 'Casual' %}selected{% endif %}>Casual</option>
+                <option value="Amistoso" {% if pelada and pelada['nivel'] == 'Amistoso' %}selected{% endif %}>Amistoso</option>
+                <option value="Competitivo" {% if pelada and pelada['nivel'] == 'Competitivo' %}selected{% endif %}>Competitivo</option>
+            </select>
+        </label>
+
+        <label>Descrição
+            <textarea name="descricao" data-cy="pelada-descricao">{{ pelada['descricao'] if pelada else '' }}</textarea>
+        </label>
+
+        <div class="grid">
+            <button type="submit" data-cy="pelada-salvar">Salvar pelada</button>
+            <a href="{{ url_for('minhas_peladas') }}" role="button" class="secondary">Cancelar</a>
+        </div>
+    </form>
+</article>
+{% endblock %}

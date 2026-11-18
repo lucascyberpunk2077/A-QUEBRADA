@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+  <h2>Minhas Peladas Organizadas</h2>
+  <a href="/pelada/nova" class="btn btn-primary">+ Nova Pelada</a>
+</div>
+
+{% if peladas %}
+  {% for p in peladas %}
+  <div class="card" data-cy="minha-pelada">
+    <div class="card-body" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+      <div style="display: flex; gap: 16px; align-items: center;">
+        <img src="https://images.unsplash.com/photo-1575361204480-aadea25e6e68?auto=format&fit=crop&w=200&q=80" alt="Campo" style="width: 84px; height: 84px; border-radius: 10px; object-fit: cover;">
+        <div>
+          <h3>{{ p['local_nome'] }}</h3>
+          <p style="color: #64748b; font-size: 0.9rem;">📅 {{ p['data_hora'] }} &bull; R$ {{ "%.2f"|format(p['valor_por_pessoa']) }}</p>
+          <span class="tag tag-green" style="margin-top: 6px;">Vagas: {{ p['vagas_livres'] }} de {{ p['vagas_totais'] }}</span>
+        </div>
+      </div>
+      <div style="display: flex; gap: 8px; align-items: center;">
+        <a href="/pelada/{{ p['id_pelada'] }}/editar" data-cy="editar" class="btn btn-outline">Editar</a>
+        <button type="button" data-cy="excluir" class="btn btn-danger" onclick="this.nextElementSibling.style.display='inline-flex'">Excluir</button>
+        <div style="display: none; gap: 6px; align-items: center;">
+          <form method="POST" action="/pelada/{{ p['id_pelada'] }}/excluir" style="display:inline;">
+            <button type="submit" data-cy="confirmar-exclusao" class="btn btn-danger">Confirmar</button>
+          </form>
+          <button type="button" class="btn btn-outline" onclick="this.parentElement.style.display='none'">Cancelar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+{% else %}
+  <div class="card"><div class="card-body"><p>Você ainda não criou nenhuma pelada.</p></div></div>
+{% endif %}
+{% endblock %}

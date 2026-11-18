@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block content %}
+<article style="max-width: 500px; margin: 2rem auto;">
+    <h2>Avaliar participante</h2>
+
+    {% if erro %}
+        <div class="erro-box" data-cy="avaliacao-erro">{{ erro }}</div>
+    {% endif %}
+
+    <form method="POST">
+        <label>Participante
+            <select name="id_avaliado" data-cy="avaliacao-participante">
+                {% for part in participantes %}
+                    <option value="{{ part['id_usuario'] }}">{{ part['nome'] }}</option>
+                {% endfor %}
+            </select>
+        </label>
+
+        <label>Nota (1 a 5)
+            <input type="number" name="nota" data-cy="avaliacao-nota" min="1" max="5" value="5">
+        </label>
+
+        <label>Comentário (opcional)
+            <input type="text" name="comentario" data-cy="avaliacao-comentario">
+        </label>
+
+        <button type="submit" data-cy="avaliacao-enviar">Enviar avaliação</button>
+    </form>
+</article>
+{% endblock %}

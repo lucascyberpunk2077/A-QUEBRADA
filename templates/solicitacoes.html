@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Solicitações recebidas</h2>
+
+<form method="GET" action="{{ url_for('solicitacoes_recebidas') }}">
+    <label>Pelada
+        <select name="pelada_id" data-cy="sol-pelada" onchange="this.form.submit()">
+            {% for m in minhas %}
+                <option value="{{ m['id_pelada'] }}" {% if pelada_selecionada and m['id_pelada'] == pelada_selecionada['id_pelada'] %}selected{% endif %}>
+                    {{ m['local_nome'] }} — {{ m['data_hora'] }}
+                </option>
+            {% endfor %}
+        </select>
+    </label>
+</form>
+
+{% if pelada_selecionada %}
+    <p><strong>Vagas livres:</strong> <span data-cy="vagas-livres">{{ vagas_livres }}</span></p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Jogador</th>
+                <th>Mensagem</th>
+                <th>Status</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for s in solicitacoes %}
+            <tr data-cy="solicitacao-item">
+                <td>{{ s['jogador_nome'] }}</td>
+                <td>{{ s['mensagem'] }}</td>
+                <td data-cy="solicitacao-status">{{ s['status'] }}</td>
+                <td>
+                    {% if s['status'] == 'Pendente' %}
+                        <form method="POST" action="{{ url_for('responder_solicitacao', id_solicitacao=s['id_solicitacao']) }}" style="display:inline;">
+                            <input type="hidden" name="acao" value="Aceita">
+                            <button type="submit" data-cy="aceitar">Aceitar</button>
+                        </form>
+                        <form method="POST" action="{{ url_for('responder_solicitacao', id_solicitacao=s['id_solicitacao']) }}" style="display:inline;">
+                            <input type="hidden" name="acao" value="Recusada">
+                            <button type="submit" class="secondary" data-cy="recusar">Recusar</button>
+                        </form>
+                    {% else %}
+                        —
+                    {% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="4">Nenhuma solicitação recebida para esta pelada.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endif %}
+{% endblock %}
