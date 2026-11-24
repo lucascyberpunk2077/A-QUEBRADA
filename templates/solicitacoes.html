@@ -21,6 +21,7 @@
         <thead>
             <tr>
                 <th>Jogador</th>
+                <th>Reputação</th>
                 <th>Mensagem</th>
                 <th>Status</th>
                 <th>Ações</th>
@@ -30,6 +31,16 @@
             {% for s in solicitacoes %}
             <tr data-cy="solicitacao-item">
                 <td>{{ s['jogador_nome'] }}</td>
+                <td data-cy="reputacao">
+                    {% if s['percentual_presenca'] is not none %}
+                        <strong data-cy="percentual-presenca">{{ s['percentual_presenca'] }}% de presença</strong>
+                        <br><small>{{ s['jogos_marcados'] }} jogo(s) registrado(s)</small>
+                    {% else %}
+                        <strong data-cy="percentual-presenca">Novo</strong>
+                        <br><small>sem histórico de presença</small>
+                    {% endif %}
+                    <br><small data-cy="nota-media">Nota: {{ s['nota_media'] if s['nota_media'] is not none else 'sem avaliações' }}</small>
+                </td>
                 <td>{{ s['mensagem'] }}</td>
                 <td data-cy="solicitacao-status">{{ s['status'] }}</td>
                 <td>
@@ -42,13 +53,30 @@
                             <input type="hidden" name="acao" value="Recusada">
                             <button type="submit" class="secondary" data-cy="recusar">Recusar</button>
                         </form>
+                    {% elif s['status'] == 'Aceita' %}
+                        {% if s['compareceu'] == 1 %}
+                            <span data-cy="presenca-status">✅ Compareceu</span>
+                        {% elif s['compareceu'] == 0 %}
+                            <span data-cy="presenca-status">❌ Faltou</span>
+                        {% elif jogo_aconteceu %}
+                            <form method="POST" action="{{ url_for('marcar_presenca', id_solicitacao=s['id_solicitacao']) }}" style="display:inline;">
+                                <input type="hidden" name="compareceu" value="1">
+                                <button type="submit" data-cy="marcar-presente">Presente</button>
+                            </form>
+                            <form method="POST" action="{{ url_for('marcar_presenca', id_solicitacao=s['id_solicitacao']) }}" style="display:inline;">
+                                <input type="hidden" name="compareceu" value="0">
+                                <button type="submit" class="secondary" data-cy="marcar-faltou">Faltou</button>
+                            </form>
+                        {% else %}
+                            <small>Presença liberada após o jogo</small>
+                        {% endif %}
                     {% else %}
                         —
                     {% endif %}
                 </td>
             </tr>
             {% else %}
-            <tr><td colspan="4">Nenhuma solicitação recebida para esta pelada.</td></tr>
+            <tr><td colspan="5">Nenhuma solicitação recebida para esta pelada.</td></tr>
             {% endfor %}
         </tbody>
     </table>
