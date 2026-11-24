@@ -1,5 +1,6 @@
 PRAGMA foreign_keys = ON;
 
+DROP VIEW IF EXISTS vw_reputacao_jogador;
 DROP TABLE IF EXISTS AVALIACAO;
 DROP TABLE IF EXISTS SOLICITACAO;
 DROP TABLE IF EXISTS PELADA;
@@ -52,6 +53,7 @@ CREATE TABLE SOLICITACAO (
     status TEXT DEFAULT 'Pendente' CHECK(status IN ('Pendente', 'Aceita', 'Recusada', 'Cancelada')),
     data_solicitacao DATETIME DEFAULT CURRENT_TIMESTAMP,
     data_resposta DATETIME,
+    compareceu INTEGER CHECK(compareceu IS NULL OR compareceu IN (0, 1)),
     UNIQUE(id_pelada, id_usuario),
     FOREIGN KEY (id_pelada) REFERENCES PELADA(id_pelada) ON DELETE CASCADE,
     FOREIGN KEY (id_usuario) REFERENCES USUARIO(id_usuario) ON DELETE CASCADE
@@ -149,6 +151,33 @@ BEGIN
       AND status = 'Lotada'
       AND (SELECT COUNT(*) FROM SOLICITACAO WHERE id_pelada = NEW.id_pelada AND status = 'Aceita') < vagas_totais;
 END;
+
+-- ==========================================
+-- 3.1 REPUTAÇÃO DE PRESENÇA (ANTI-FURÃO)
+-- ==========================================
+
+-- RN-10: presença só pode ser marcada para jogador aceito e depois da data do jogo
+CREATE TRIGGER trg_validar_marcacao_presenca
+BEFORE UPDATE OF compareceu ON SOLICITACAO
+WHEN NEW.compareceu IS NOT NULL
+BEGIN
+    SELECT RAISE(ABORT, 'Presença só pode ser marcada para jogadores aceitos.')
+    WHERE NEW.status != 'Aceita';
+    SELECT RAISE(ABORT, 'Presença só pode ser marcada depois da data do jogo.')
+    WHERE (SELECT data_hora FROM PELADA WHERE id_pelada = NEW.id_pelada) > strftime('%Y-%m-%d %H:%M', 'now', 'localtime');
+END;
+
+-- View que calcula a reputação de cada jogador
+CREATE VIEW vw_reputacao_jogador AS
+SELECT
+    u.id_usuario,
+    COUNT(s.compareceu) AS jogos_marcados,
+    COALESCE(SUM(s.compareceu), 0) AS jogos_presente,
+    CAST(ROUND(100.0 * SUM(s.compareceu) / COUNT(s.compareceu)) AS INTEGER) AS percentual_presenca,
+    (SELECT ROUND(AVG(a.nota), 1) FROM AVALIACAO a WHERE a.id_avaliado = u.id_usuario) AS nota_media
+FROM USUARIO u
+LEFT JOIN SOLICITACAO s ON s.id_usuario = u.id_usuario AND s.compareceu IS NOT NULL
+GROUP BY u.id_usuario;
 
 -- ==========================================
 -- 4. MASSA DE DADOS INICIAL (SEED PARA O CYPRESS)
