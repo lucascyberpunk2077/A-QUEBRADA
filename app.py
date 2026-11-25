@@ -433,6 +433,7 @@ def solicitacoes_recebidas():
     pelada_selecionada = None
     lista_solicitacoes = []
     vagas_livres = 0
+    jogo_aconteceu = False
 
     if pelada_id:
         pelada_selecionada = conn.execute(
@@ -446,11 +447,14 @@ def solicitacoes_recebidas():
                 (pelada_id,)
             ).fetchone()[0]
             vagas_livres = pelada_selecionada['vagas_totais'] - aceitos
+            jogo_aconteceu = pelada_selecionada['data_hora'] <= datetime.now().strftime('%Y-%m-%d %H:%M')
 
             lista_solicitacoes = conn.execute('''
-                SELECT s.*, u.nome AS jogador_nome
+                SELECT s.*, u.nome AS jogador_nome,
+                       r.percentual_presenca, r.jogos_marcados, r.nota_media
                 FROM SOLICITACAO s
                 JOIN USUARIO u ON s.id_usuario = u.id_usuario
+                LEFT JOIN vw_reputacao_jogador r ON r.id_usuario = s.id_usuario
                 WHERE s.id_pelada = ?
                 ORDER BY s.data_solicitacao ASC
             ''', (pelada_id,)).fetchall()
@@ -461,7 +465,8 @@ def solicitacoes_recebidas():
         minhas=minhas,
         pelada_selecionada=pelada_selecionada,
         vagas_livres=vagas_livres,
-        solicitacoes=lista_solicitacoes
+        solicitacoes=lista_solicitacoes,
+        jogo_aconteceu=jogo_aconteceu
     )
 
 
@@ -489,6 +494,35 @@ def responder_solicitacao(id_solicitacao):
                 conn.commit()
             except sqlite3.IntegrityError:
                 flash('Sem vagas livres: o aceite foi rejeitado.')
+
+    conn.close()
+    return redirect(url_for('solicitacoes_recebidas', pelada_id=pelada_id))
+
+
+@app.route('/solicitacao/<int:id_solicitacao>/presenca', methods=['POST'])
+@login_required
+def marcar_presenca(id_solicitacao):
+    valor = request.form.get('compareceu')  # '1' = compareceu, '0' = faltou
+    conn = get_db()
+    sol = conn.execute('''
+        SELECT s.*, p.id_organizador
+        FROM SOLICITACAO s
+        JOIN PELADA p ON s.id_pelada = p.id_pelada
+        WHERE s.id_solicitacao = ?
+    ''', (id_solicitacao,)).fetchone()
+
+    pelada_id = sol['id_pelada'] if sol else ''
+
+    if sol and sol['id_organizador'] == session['user_id'] and valor in ('0', '1'):
+        try:
+            conn.execute(
+                'UPDATE SOLICITACAO SET compareceu = ? WHERE id_solicitacao = ?',
+                (int(valor), id_solicitacao)
+            )
+            conn.commit()
+            flash('Presença registrada.')
+        except sqlite3.IntegrityError as erro:
+            flash(str(erro))
 
     conn.close()
     return redirect(url_for('solicitacoes_recebidas', pelada_id=pelada_id))
